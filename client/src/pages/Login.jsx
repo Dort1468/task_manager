@@ -25,11 +25,28 @@ const Login = () => {
   const submitHandler = async (data) => {
     try {
       const result = await login(data).unwrap();
-      dispatch(setCredentials(result));
-      navigate("/");
-    } catch (e) {
-      console.log(e);
-      toast.error(errors?.data?.message || errors.message);
+
+      if (result) {
+        dispatch(
+          setCredentials({
+            user: result.user,
+            token: result.token,
+          })
+        );
+
+        if (result.token) {
+          localStorage.setItem("token", result.token);
+        }
+        navigate("/");
+        toast.success("Login successful!");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Login failed. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
