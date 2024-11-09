@@ -19,23 +19,7 @@ router.post("/create", protectRoute, isAdminRoute, createTask);
 router.post("/duplicate/:id", protectRoute, isAdminRoute, duplicateTask);
 router.post("/activity/:id", protectRoute, postTaskActivity);
 
-router.get(
-  "/dashboard",
-  protectRoute,
-  dashboardStatistics,
-  async (req, res, next) => {
-    try {
-      res.header(
-        "Access-Control-Allow-Origin",
-        "https://taskontaskmanager.netlify.app"
-      );
-      res.header("Access-Control-Allow-Credentials", "true");
-      res.json(data);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
+router.get("/dashboard", protectRoute, dashboardStatistics);
 router.get("/", protectRoute, getTasks);
 router.get("/:id", protectRoute, getTask);
 

@@ -19,10 +19,9 @@ const createJWT = (res, userId) => {
   // Change sameSite from strict to none when you deploy your app
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV !== "development",
     sameSite: "none", //prevent CSRF attack
     maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
-    domain: ".onrender.com",
   });
 
   return token;
