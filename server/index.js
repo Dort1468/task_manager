@@ -3,15 +3,15 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
-import { errorHandler, routeNotFound } from "./middleware/errorMiddleware.js";
+import { errorHandler, routeNotFound } from "./middlewares/errorMiddlewares.js";
 import routes from "./routes/index.js";
-import dbConnection from "./utils/connectDB.js";
+import dbConnection from "./utils/index.js";
 
 dotenv.config();
 
 dbConnection();
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8800;
 
 const app = express();
 
