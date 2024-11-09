@@ -62,10 +62,15 @@ export const loginUser = async (req, res) => {
     const isMatch = await user.matchPassword(password);
 
     if (user && isMatch) {
-      createJWT(res, user._id);
+      const token = createJWT(res, user._id);
 
       user.password = undefined;
-
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token,
+      });
       res.status(200).json(user);
     } else {
       return res
