@@ -14,51 +14,52 @@ dbConnection();
 const port = process.env.PORT || 8800;
 const app = express();
 
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://taskontaskmanager.netlify.app"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie"
+  );
+  res.header("Access-Control-Expose-Headers", "Set-Cookie");
+
+  // 處理 OPTIONS 預檢請求
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
+
 // CORS 配置選項
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "https://taskontaskmanager.netlify.app",
-    ];
-
-    // 允許沒有 origin 的請求（如移動應用或 Postman）
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
-  },
-  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-  ],
+  origin: "https://taskontaskmanager.netlify.app",
   credentials: true,
-  maxAge: 86400, // 24 hours
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  exposedHeaders: ["Set-Cookie"],
+  maxAge: 86400,
 };
-
 // 應用 CORS 中介軟體
 app.use(cors(corsOptions));
 
-// 設定基本的安全標頭
+app.use(cookieParser());
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
+  // 設定 cookie 的 SameSite 屬性
+  res.cookie("token", req.cookies.token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    domain: ".onrender.com", // 根據你的 domain 調整
+  });
   next();
 });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(morgan("dev"));
 
 // API 路由
@@ -69,7 +70,4 @@ app.use(routeNotFound);
 app.use(errorHandler);
 
 // 啟動伺服器
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-  console.log("Allowed origins:", corsOptions.origin);
-});
+app.listen(port, () => console.log(`Server listening on ${port}`));
