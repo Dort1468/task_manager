@@ -11,35 +11,33 @@ dotenv.config();
 
 dbConnection();
 
-const PORT = process.env.PORT || 8800;
-
-const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? ["https://taskontaskmanager.netlify.app"]
-      : ["http://localhost:3000", "http://localhost:3001"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Origin",
-    "X-Requested-With",
-    "Content-Type",
-    "Accept",
-    "Authorization",
-  ],
-  exposedHeaders: ["Set-Cookie", "Authorization"],
-};
-
 const app = express();
-
-app.use(morgan("dev"));
-
-app.options("*", cors(corsOptions));
-app.use(cors(corsOptions));
+const PORT = process.env.PORT || 8800;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(morgan("dev"));
+
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://taskontaskmanager.netlify.app"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+
+  // 處理 OPTIONS 請求
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  next();
+});
 
 app.get("/", (req, res) => {
   res.json({ message: "Server is running" });
@@ -47,16 +45,30 @@ app.get("/", (req, res) => {
 
 app.use("/api", routes);
 
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://taskontaskmanager.netlify.app"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  res.status(err.status || 500).json({
+    message: err.message,
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+  });
+});
+
 app.use(routeNotFound);
 app.use(errorHandler);
 
-if (process.env.NODE_ENV !== "production") {
-  app.use((req, res, next) => {
-    console.log("Request Headers:", req.headers);
-    console.log("Request Method:", req.method);
-    console.log("Request URL:", req.url);
-    next();
-  });
-}
-
 app.listen(PORT, () => console.log(`Server is listening on ${PORT}`));
+
+process.on("unhandledRejection", (err) => {
+  console.log("UNHANDLED REJECTION! Shutting down...");
+  console.error("Error:", err);
+
+  server.close(() => {
+    process.exit(1);
+  });
+});

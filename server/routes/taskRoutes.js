@@ -30,6 +30,7 @@ router.get(
         "https://taskontaskmanager.netlify.app"
       );
       res.header("Access-Control-Allow-Credentials", "true");
+      res.json(data);
     } catch (error) {
       next(error);
     }

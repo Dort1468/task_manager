@@ -6,7 +6,6 @@ const baseQuery = fetchBaseQuery({
   baseUrl: API_URI,
   credentials: "include",
   prepareHeaders: (headers) => {
-    headers.set("Access-Control-Allow-Credentials", "true");
     const token = localStorage.getItem("token");
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
